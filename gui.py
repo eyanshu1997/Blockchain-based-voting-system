@@ -9,9 +9,6 @@ def focus1(event):
 
 
 	
-def calc():
-	print et
-	print xt
 def avoter():
 	root = Tk()
 	root.configure(background='light green')
@@ -34,9 +31,13 @@ def avoter():
 	
 	name_field.grid(row=1, column=1, ipadx="100")
 	pass_field.grid(row=2, column=1, ipadx="100") 
- 
-	et=name_field.get()
-	xt=pass_field.get()
+
+	def calc():
+		et=name_field.get()
+		xt=pass_field.get()
+		print et
+		print xt
+		
 	submit = Button(root, text="Submit", fg="Black", bg="Red", command=calc)
 	submit.grid(row=8, column=1)
 	root.mainloop()  
