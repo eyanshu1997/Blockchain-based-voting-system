@@ -10,6 +10,16 @@ def clear():
     list = re.grid_slaves()
     for l in list:
         l.destroy()
+def home():
+	clear()
+	button = tk.Button(re, text=' add a voter', width=25, command=avoter)
+	button.grid(row=0,column=0)
+	butt = tk.Button(re,text='add a vote' , width=25,command=avote)
+	butt.grid(row=0,column=1)
+	but = tk.Button(re,text='count vote of candidate' , width=25,command=countvote)
+	but.grid(row=0,column=2)
+	butt1 = tk.Button(re,text='integrity check' , width=25,command=icheck)
+	butt1.grid(row=0,column=3)
 def avoter():
 	clear()
 	button = tk.Button(re, text=' add a voter', width=25, command=avoter)
@@ -43,6 +53,8 @@ def avoter():
 		
 	submit = Button(re, text="Submit", fg="Black", bg="Red", command=calc)
 	submit.grid(row=9, column=1)
+	button = tk.Button(re, text='home', width=25, command=home)
+	button.grid(row=10,column=1)
 def avote():
 	clear()
 	button = tk.Button(re, text=' add a voter', width=25, command=avoter)
@@ -80,6 +92,8 @@ def avote():
 		
 	submit = Button(re, text="Submit", fg="Black", bg="Red", command=calc)
 	submit.grid(row=9, column=1)
+	button = tk.Button(re, text='home', width=25, command=home)
+	button.grid(row=10,column=1)
 def countvote():
 	clear()
 	button = tk.Button(re, text=' add a voter', width=25, command=avoter)
@@ -106,6 +120,8 @@ def countvote():
 		
 	submit = Button(re, text="Submit", fg="Black", bg="Red", command=calc)
 	submit.grid(row=9, column=1)
+	button = tk.Button(re, text='home', width=25, command=home)
+	button.grid(row=10,column=1)
 def icheck():
 	clear()
 	button = tk.Button(re, text=' add a voter', width=25, command=avoter)
@@ -119,12 +135,7 @@ def icheck():
 	heading = Label(re, text="INTEGRITY CHECK", bg="light green")
 	heading.grid(row=1, column=1)
 	print " intergrity check"
-button = tk.Button(re, text=' add a voter', width=25, command=avoter)
-button.grid(row=0,column=0)
-butt = tk.Button(re,text='add a vote' , width=25,command=avote)
-butt.grid(row=0,column=1)
-but = tk.Button(re,text='count vote of candidate' , width=25,command=countvote)
-but.grid(row=0,column=2)
-butt1 = tk.Button(re,text='integrity check' , width=25,command=icheck)
-butt1.grid(row=0,column=3)
+	button = tk.Button(re, text='home', width=25, command=home)
+	button.grid(row=10,column=1)
+home()
 re.mainloop() 
