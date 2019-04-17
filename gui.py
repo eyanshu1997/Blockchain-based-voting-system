@@ -17,7 +17,7 @@ def avoter():
 	
 	heading = Label(root, text="Form", bg="light green")
 	name = Label(root, text="Name", bg="light green")
-	pas = Label(root, text="Course", bg="light green")
+	pas = Label(root, text="voter pass", bg="light green")
 	
 	heading.grid(row=0, column=1)
 	name.grid(row=1, column=0)
