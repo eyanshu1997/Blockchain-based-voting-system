@@ -12,6 +12,33 @@ vfile=""
 no=0
 port = 12348
 
+class quitButton(Button):
+    def __init__(self, parent):
+        Button.__init__(self, parent)
+        self['text'] = 'OK'
+        # Command to close the window (the destory method)
+        self['command'] = parent.destroy
+        self.pack(side=BOTTOM)
+def msg(ms):
+	main = Tk() 
+	w = 80
+	h = 65 
+	ws = main.winfo_screenwidth() 
+	hs = main.winfo_screenheight()
+	x = (ws/2) - (w/2)
+	y = (hs/2) - (h/2)
+	main.geometry('%dx%d+%d+%d' % (w, h, x, y))
+	def close_window (): 
+		root.destroy()
+	ourMessage =ms
+	frame = Frame(main)
+	frame.pack()
+	messageVar = Message(frame, text = ourMessage) 
+	messageVar.config(bg='lightgreen') 
+	messageVar.pack( ) 
+	quitButton(main)
+	main.mainloop( ) 
+
 def convert(s): 
     new = "" 
     for x in s: 
@@ -100,14 +127,17 @@ def sendvote(voterhash,voterpass,vote):
 	if x=='false' or x=='falsevote':
 		if x=='false':
 			print "false voterhas"
+			msg("false voterhas")
 		if x=='falsevote':
 			print "vote for this hash already exists"
+			msg("vote already exits")
 	else:
 		s.send(voterpass)
 		print "sent voterpass"
 		x=s.recv(1024)
 		if x=='false':
 			print "invlid details"
+			msg("invalid details")
 		else:
 			print "previous hash",prehash
 			print "count " , count
@@ -125,6 +155,7 @@ def sendvote(voterhash,voterpass,vote):
 			f.close()
 			s.send(has)
 			print "vote block added"
+			msg("vote block added"+block)
 			print block
 			print "vote block list"
 			print voteblocks
@@ -165,6 +196,7 @@ def sendv(votername,voterpass):
 	f.close()
 	print "block added"
 	print block
+	msg("block added: "+block)
 	print "block list"
 	print blocks
 	s.close()
@@ -190,7 +222,7 @@ def cvote(candidate):
 	sync()
 	
 def intcheck():
-	choice='6'
+	choice='7'
 	global no
 	global file
 	global vfile
@@ -205,6 +237,7 @@ def intcheck():
 	print x
 	s.close()
 	sync()
+	return x
 
 	
 
@@ -213,6 +246,37 @@ re = tk.Tk()
 re.title('voting system')
 re.configure(background='light green')
 re.geometry("700x400")
+def log():
+	quote ="voter list \n"
+	global file
+	global vfile
+	f = open(file)
+	lines = f.readlines()
+	i=0
+	print "1: "
+	for x in lines:
+		i=i+1
+		block =[]
+		for y in x.strip("\n").split(","):
+			quote=quote+y+" "
+			print y
+		quote=quote + "\n"
+		print "\n",i," : "
+	quote=quote+"voter list\n"
+	f=open(vfile)
+	lines=f.readlines()
+	i=0
+	print "1: "
+	for x in lines:
+		i=i+1
+		block =[]
+		for y in x.strip("\n").split(","):
+			quote=quote+y+" "
+		quote=quote + "\n"
+		print "\n",i," : "
+	T = Text(re, height=7, width=700)
+	T.grid(row=2,column=0,columnspan=4,rowspan=7)
+	T.insert(END, quote)
 def start():
 	heading = Label(re, text="ENTER CLIENT NO", bg="light green")
 	name = Label(re, text="Client no", bg="light green")
@@ -340,9 +404,11 @@ def countvote():
 def icheck():
 	clear()
 	top()
-	intcheck()
+	message = intcheck()
 	heading = Label(re, text="INTEGRITY CHECK", bg="light green")
 	heading.grid(row=1, column=1)
+	head=Label(re,text=message, bg="light green")
+	head.grid(row=2,column=1)
 	print " intergrity check"
 	button = tk.Button(re, text='home', width=25, command=home)
 	button.grid(row=10,column=1)
