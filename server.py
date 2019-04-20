@@ -9,7 +9,7 @@ voteblocks=[]
 def get_Host_name_IP(): 
     try: 
         host_name = socket.gethostname() 
-        host_ip = socket.gethostbyname(host_name) 
+        host_ip = ' '.join(socket.gethostbyname_ex(socket.gethostname())[2])
         print("Hostname :  ",host_name) 
         print("IP : ",host_ip) 
     except: 

@@ -25,6 +25,8 @@ def check(block):
 		if x[0]==block[0]:
 			if compare(x,block)==1:
 				print "error in data tampered", x ,block
+				print " eroor: ",x[0],block[0]
+				return 2
 			return 1
 	return 0
 	
@@ -34,6 +36,8 @@ def vcheck(block):
 		if x[0]==block[0]:
 			if compare(x,block)==1:
 				print "error in data tampered"
+				print " eroor: ",x[0],block[0]
+				return 2
 			return 1
 	return 0
 	
@@ -49,17 +53,24 @@ def sync():
 		block =[]
 		for y in x.strip("\n").split(","):
 			block.append(y)
-		if check(block)==0:
+		z=check(block)
+		if z==0:
 			blocks.append(block)
-
+		else:
+			if z==2:
+				return 1
 	f=open(vfile)
 	lines=f.readlines()
 	for x in lines:
 		block =[]
 		for y in x.strip("\n").split(","):
 			block.append(y)
-		if vcheck(block)==0:
+		o=vcheck(block)
+		if o==0:
 			voteblocks.append(block)
+		else:
+			if o==2:
+				return 1
 	s = socket.socket()
 	s.connect((ip, port))
 	s.send(no)
@@ -95,6 +106,7 @@ def sync():
 				s.send(dig)
 				s.recv(1024)
 	s.close()
+	return 0
 	
 	
 class quitButton(Button):
@@ -270,6 +282,8 @@ def cvote(candidate):
 	s.close()
 	
 def intcheck():
+	if sync()==1:
+		return "data tampered"
 	choice='7'
 	global no
 	global file
