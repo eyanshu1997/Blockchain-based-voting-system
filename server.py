@@ -6,6 +6,16 @@ hashes=[]
 blocks=[]
 votehashes=[]
 voteblocks=[]
+def get_Host_name_IP(): 
+    try: 
+        host_name = socket.gethostname() 
+        host_ip = socket.gethostbyname(host_name) 
+        print("Hostname :  ",host_name) 
+        print("IP : ",host_ip) 
+    except: 
+        print("Unable to get Hostname and IP") 
+  
+
 def integretycheck():
 	i=1
 	for i in range(len(voteblocks)):
@@ -39,8 +49,7 @@ def vcheck(block):
 				print "error in data tampered"
 			return 1
 	return 0
-	
-
+		
 def convert(s): 
   
     # initialization of string to "" 
@@ -82,8 +91,6 @@ has= hashlib.sha224(convert(block)).hexdigest()
 block.append(has)
 blocks.append(block)
 voteblocks.append(voteblock)
-count=1;
-vcount=1;
 
 
 # next create a socket object 
@@ -93,6 +100,7 @@ port = 12348
 s.bind(('', port))		 
 s.listen(5)
 
+get_Host_name_IP()
 prehash=has
 voteprehash=vhas
 while True: 
@@ -105,13 +113,10 @@ while True:
 	f.write(convert(addr)+"\n")
 	f.close()
 	choice=c.recv(1024)
-	if choice=='1':
-		f = open("demofile2.txt", "r")
-		st=f.read()
-		c.send(st)
 	if choice=='2':
 		c.send(prehash)
 		c.recv(1024)
+		count=len(blocks)+1
 		c.send(str(count))
 		print "sent prehash and count"
 		data=c.recv(1024)
@@ -120,7 +125,6 @@ while True:
 		arr=[count,data,addr,clientno]
 		hashes.append(arr)
 		print "hash list",hashes
-		count=count+1
 	if choice=='4':
 		c.send("choice recieved")
 		n=c.recv(1024)
@@ -142,7 +146,6 @@ while True:
 					c.send("recieved")
 				if check(block)==0:
 					blocks.append(block)
-					count=count+1
 			print "blocks",blocks
 		n=c.recv(1024)
 		if int(n)==0:
@@ -163,13 +166,13 @@ while True:
 					c.send("recieved")
 				if vcheck(voteblock)==0:
 					voteblocks.append(voteblock)
-					vcount=vcount+1
 			print "voteblocks",voteblocks
 	if choice=='5':
 		c.send(voteprehash)
 		print "sent voterprehash"
 		c.recv(1024)
 		print "recieved"
+		vcount=len(voteblocks)+1
 		c.send(str(vcount))
 		print "sent votercount"
 		print "sent prehash and count"
@@ -194,10 +197,9 @@ while True:
 				data=c.recv(1024)
 				print "vote data added hash is",data,"by addres",addr
 				voteprehash=data
-				arr=[count,data,addr,clientno]
+				arr=[vcount,data,addr,clientno]
 				votehashes.append(arr)
 				print "vote hash list",votehashes
-				vcount=vcount+1
 	
 	if choice=='6':
 		co=0
@@ -212,4 +214,8 @@ while True:
 			c.send("chain tampered")
 		else:
 			c.send("chain true")
+			c.recv(1024)
+			c.send(str(len(blocks)))
+			c.recv(1024)
+			c.send(str(len(voteblocks)))
 	c.close()

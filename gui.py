@@ -11,39 +11,31 @@ file= ""
 vfile=""
 no=0
 port = 12348
-
-class quitButton(Button):
-    def __init__(self, parent):
-        Button.__init__(self, parent)
-        self['text'] = 'OK'
-        # Command to close the window (the destory method)
-        self['command'] = parent.destroy
-        self.pack(side=BOTTOM)
-def msg(ms):
-	main = Tk() 
-	w = 80
-	h = 65 
-	ws = main.winfo_screenwidth() 
-	hs = main.winfo_screenheight()
-	x = (ws/2) - (w/2)
-	y = (hs/2) - (h/2)
-	main.geometry('%dx%d+%d+%d' % (w, h, x, y))
-	def close_window (): 
-		root.destroy()
-	ourMessage =ms
-	frame = Frame(main)
-	frame.pack()
-	messageVar = Message(frame, text = ourMessage) 
-	messageVar.config(bg='lightgreen') 
-	messageVar.pack( ) 
-	quitButton(main)
-	main.mainloop( ) 
-
-def convert(s): 
-    new = "" 
-    for x in s: 
-        new += (str(x)+ " ")   
-    return new 
+ip='127.0.0.1'
+def compare(x,block):
+	y=0
+	for  y in range(len(block)):
+		if x[y]!=block[y]:
+			return 1
+	return 0
+	
+	
+def check(block):
+	for x in blocks:
+		if x[0]==block[0]:
+			if compare(x,block)==1:
+				print "error in data tampered", x ,block
+			return 1
+	return 0
+	
+	
+def vcheck(block):
+	for x in voteblocks:
+		if x[0]==block[0]:
+			if compare(x,block)==1:
+				print "error in data tampered"
+			return 1
+	return 0
 	
 def sync():
 	choice='4'
@@ -51,15 +43,14 @@ def sync():
 	global file
 	global vfile
 	print "sync started"
-	voteblocks=[]
-	blocks=[] 
 	f = open(file)
 	lines = f.readlines()
 	for x in lines:
 		block =[]
 		for y in x.strip("\n").split(","):
 			block.append(y)
-		blocks.append(block)
+		if check(block)==0:
+			blocks.append(block)
 
 	f=open(vfile)
 	lines=f.readlines()
@@ -67,9 +58,10 @@ def sync():
 		block =[]
 		for y in x.strip("\n").split(","):
 			block.append(y)
-		voteblocks.append(block)
+		if vcheck(block)==0:
+			voteblocks.append(block)
 	s = socket.socket()
-	s.connect(('127.0.0.1', port))
+	s.connect((ip, port))
 	s.send(no)
 	x=s.recv(1024)
 	print "from server: ",x
@@ -104,6 +96,60 @@ def sync():
 				s.recv(1024)
 	s.close()
 	
+	
+class quitButton(Button):
+    def __init__(self, parent):
+        Button.__init__(self, parent)
+        self['text'] = 'OK'
+        # Command to close the window (the destory method)
+        self['command'] = parent.destroy
+        self.pack(side=BOTTOM)
+def msg(ms,w=80,h=65):
+	sync()
+	main = Tk() 
+	def cl(event):
+		main.destroy()
+	main.lift()
+	main.attributes("-topmost", True)
+	main.bind('<Return>',cl)
+	ws = main.winfo_screenwidth() 
+	hs = main.winfo_screenheight()
+	x = (ws/2) - (w/2)
+	y = (hs/2) - (h/2)
+	main.geometry('%dx%d+%d+%d' % (w, h, x, y))
+	def close_window (): 
+		root.destroy()
+	ourMessage =ms
+	frame = Frame(main,height=h,width=w)
+	frame.pack()
+	messageVar = Message(frame, text = ourMessage,width=w) 
+	messageVar.config(bg='lightgreen') 
+	messageVar.pack( ) 
+	quitButton(main)
+	main.mainloop( ) 
+
+def sconvert(s): 
+  
+    # initialization of string to "" 
+    new = "" 
+  
+    # traverse in the string  
+    for x in s: 
+		if x!=s[-1]:
+			new += (str(x)+ ", ")   
+		else:
+			new+=(str(x))
+    # return string  
+    return new 
+	
+def convert(s): 
+    new = "" 
+    for x in s: 
+        new += (str(x)+ " ")   
+    return new 
+	
+
+	
 def sendvote(voterhash,voterpass,vote):
 	choice='5'
 	global no
@@ -112,7 +158,7 @@ def sendvote(voterhash,voterpass,vote):
 	print "send vote started"
 	ti=str(datetime.datetime.now())
 	s = socket.socket()
-	s.connect(('127.0.0.1', port))
+	s.connect((ip, port))
 	s.send(no)
 	x=s.recv(1024)
 	print "from server: ",x		
@@ -126,8 +172,8 @@ def sendvote(voterhash,voterpass,vote):
 	x=s.recv(1024)
 	if x=='false' or x=='falsevote':
 		if x=='false':
-			print "false voterhas"
-			msg("false voterhas")
+			print "false voterhash"
+			msg("false voterhash")
 		if x=='falsevote':
 			print "vote for this hash already exists"
 			msg("vote already exits")
@@ -155,12 +201,12 @@ def sendvote(voterhash,voterpass,vote):
 			f.close()
 			s.send(has)
 			print "vote block added"
-			msg("vote block added"+block)
+			msg("vote block added\n"+sconvert(block),400,100)
 			print block
 			print "vote block list"
 			print voteblocks
 	s.close()
-	sync()
+	
 	
 def sendv(votername,voterpass):
 	choice='2'
@@ -170,7 +216,7 @@ def sendv(votername,voterpass):
 	print "sendv started"
 	ti=str(datetime.datetime.now())
 	s = socket.socket()
-	s.connect(('127.0.0.1', port)) 	
+	s.connect((ip, port)) 	
 	s.send(no)
 	x=s.recv(1024)
 	print "from server: ",x
@@ -196,11 +242,10 @@ def sendv(votername,voterpass):
 	f.close()
 	print "block added"
 	print block
-	msg("block added: "+block)
+	msg("block added: \n"+sconvert(block),400,100)
 	print "block list"
 	print blocks
 	s.close()
-	sync()
 	
 def cvote(candidate):
 	choice='6'
@@ -209,7 +254,7 @@ def cvote(candidate):
 	global vfile
 	print "countvote started"
 	s = socket.socket()
-	s.connect(('127.0.0.1', port))
+	s.connect((ip, port))
 	s.send(no)
 	x=s.recv(1024)
 	print "from server: ",x		
@@ -218,8 +263,11 @@ def cvote(candidate):
 	s.send(candidate)
 	co=s.recv(1024)
 	print "no of votes for that candidate",co
+	ms="no of votes for this candidate: "+co
+	heading = Label(re, text=ms, bg="light green")
+	heading.grid(row=3, column=1)
+	msg(ms)
 	s.close()
-	sync()
 	
 def intcheck():
 	choice='7'
@@ -228,15 +276,30 @@ def intcheck():
 	global vfile
 	print "integrity check started"
 	s = socket.socket()
-	s.connect(('127.0.0.1', port))
+	s.connect((ip, port))
 	s.send(no)
 	x=s.recv(1024)
 	print "from server: ",x		
 	s.send(choice)
 	x=s.recv(1024)
 	print x
+	s.send("recieved")
+	count=s.recv(1024)
+	s.send("recived")
+	vcount=s.recv(1024)
+	ms="voter chain no of lists"+count
+	head=Label(re,text=ms, bg="light green")
+	head.grid(row=3,column=1)
+	ms="vote chain no of lists"+vcount
+	head=Label(re,text=ms, bg="light green")
+	head.grid(row=4,column=1)
+	ms="no of voters in this client"+str(len(blocks))
+	head=Label(re,text=ms, bg="light green")
+	head.grid(row=5,column=1)
+	ms="no of votes in this client"+str(len(voteblocks))
+	head=Label(re,text=ms, bg="light green")
+	head.grid(row=6,column=1)
 	s.close()
-	sync()
 	return x
 
 	
@@ -246,54 +309,26 @@ re = tk.Tk()
 re.title('voting system')
 re.configure(background='light green')
 re.geometry("700x400")
-def log():
-	quote ="voter list \n"
-	global file
-	global vfile
-	f = open(file)
-	lines = f.readlines()
-	i=0
-	print "1: "
-	for x in lines:
-		i=i+1
-		block =[]
-		for y in x.strip("\n").split(","):
-			quote=quote+y+" "
-			print y
-		quote=quote + "\n"
-		print "\n",i," : "
-	quote=quote+"voter list\n"
-	f=open(vfile)
-	lines=f.readlines()
-	i=0
-	print "1: "
-	for x in lines:
-		i=i+1
-		block =[]
-		for y in x.strip("\n").split(","):
-			quote=quote+y+" "
-		quote=quote + "\n"
-		print "\n",i," : "
-	T = Text(re, height=7, width=700)
-	T.grid(row=2,column=0,columnspan=4,rowspan=7)
-	T.insert(END, quote)
+
 def start():
 	heading = Label(re, text="ENTER CLIENT NO", bg="light green")
 	name = Label(re, text="Client no", bg="light green")
-	
+	i = Label(re, text="IP OF SERVER", bg="light green")
 	heading.grid(row=1, column=1)
 	name.grid(row=2, column=0)
-	
+	i.grid(row=3, column=0)
 	name_field = Entry(re)
-	
+	i_field=Entry(re)
 	name_field.grid(row=2, column=1, ipadx="50")
-	
+	i_field.grid(row=3,column=1,ipadx="50")
 	def calc():
 		global no
 		global file
 		global vfile
-		
+		global ip
 		no=name_field.get()
+		ip=str(i_field.get())
+		print "ip is",ip
 		file= no+".txt"
 		vfile=no+"vote.txt"
 		home()
@@ -313,12 +348,21 @@ def top():
 	butt1 = tk.Button(re,text='integrity check' , width=25,command=icheck)
 	butt1.grid(row=0,column=3)
 def home():
+	global file
+	global vfile
 	sync()
 	print no
 	print str(file)
 	print str(vfile)
 	clear()
 	top()
+	ms="no of voters in this client"+str(len(blocks))
+	head=Label(re,text=ms, bg="light green")
+	head.grid(row=5,column=1)
+	ms="no of votes in this client"+str(len(voteblocks))
+	head=Label(re,text=ms, bg="light green")
+	head.grid(row=6,column=1)
+	
 def avoter():
 	clear()
 	top()
@@ -342,7 +386,8 @@ def avoter():
 		print et
 		print xt
 		sendv(et,xt)
-		
+		avoter()
+		home()
 	submit = Button(re, text="Submit", fg="Black", bg="Red", command=calc)
 	submit.grid(row=9, column=1)
 	button = tk.Button(re, text='home', width=25, command=home)
@@ -375,7 +420,7 @@ def avote():
 		print xt
 		print vt
 		sendvote(et,xt,vt)
-		
+		home()
 	submit = Button(re, text="Submit", fg="Black", bg="Red", command=calc)
 	submit.grid(row=9, column=1)
 	button = tk.Button(re, text='home', width=25, command=home)
@@ -396,7 +441,7 @@ def countvote():
 		et=name_field.get()
 		print et
 		cvote(et)
-	
+		home()
 	submit = Button(re, text="Submit", fg="Black", bg="Red", command=calc)
 	submit.grid(row=9, column=1)
 	button = tk.Button(re, text='home', width=25, command=home)
