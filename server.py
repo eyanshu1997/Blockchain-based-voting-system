@@ -15,12 +15,30 @@ def get_Host_name_IP():
     except: 
         print("Unable to get Hostname and IP") 
   
-
+def sear(hash):
+	for x in hashes:
+		if x[1]==hash:
+			return 1
+	return 0
+def searv(hash):
+	for x in votehashes:
+		if x[1]==hash:
+			return 1
+	return 0
 def integretycheck():
+	i=1
+	for i in range(len(voteblocks)):
+		if searv(voteblocks[i][-1])!=1:
+			return 1
+	i=1
+	for i in range(len(blocks)):
+		if sear(blocks[i][-1])!=1:
+			return 1
 	i=1
 	for i in range(len(voteblocks)):
 		if voteblocks[i][4]!=voteblocks[i-1][-1]:
 			return 1
+	i=1
 	for i in range(len(blocks)):
 		if blocks[i][2]!=blocks[i-1][-1]:
 			return 1
