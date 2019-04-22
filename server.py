@@ -69,15 +69,9 @@ def vcheck(block):
 	return 0
 		
 def convert(s): 
-  
-    # initialization of string to "" 
     new = "" 
-  
-    # traverse in the string  
     for x in s: 
         new += (str(x)+ " ")   
-  
-    # return string  
     return new 
 def checkvote(voterhash):
 	for x in voteblocks:
@@ -110,8 +104,6 @@ block.append(has)
 blocks.append(block)
 voteblocks.append(voteblock)
 
-
-# next create a socket object 
 print "Server created\n"
 s = socket.socket()		 
 port = 12348	

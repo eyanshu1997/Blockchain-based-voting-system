@@ -3,7 +3,7 @@ from Tkinter import *
 import socket			
 import datetime 
 import hashlib
-
+import os
 voteblocks=[]
 blocks=[] 
 
@@ -113,7 +113,6 @@ class quitButton(Button):
     def __init__(self, parent):
         Button.__init__(self, parent)
         self['text'] = 'OK'
-        # Command to close the window (the destory method)
         self['command'] = parent.destroy
         self.pack(side=BOTTOM)
 def msg(ms,w=80,h=65):
@@ -139,19 +138,47 @@ def msg(ms,w=80,h=65):
 	messageVar.pack( ) 
 	quitButton(main)
 	main.mainloop( ) 
+def amsg(ms,has,w=80,h=120):
+	def close_window (): 
+		main.destroy()
+	def paste():
+		text=has
+		command = 'echo ' + text.strip()+ '| clip'
+		os.system(command)
+		close_window()
+	sync()
+	main = Tk() 
+	def cl(event):
+		main.destroy()
+	main.lift()
+	main.attributes("-topmost", True)
+	main.bind('<Return>',cl)
+	ws = main.winfo_screenwidth() 
+	hs = main.winfo_screenheight()
+	x = (ws/2) - (w/2)
+	y = (hs/2) - (h/2)
 
+	
+	main.geometry('%dx%d+%d+%d' % (w, h, x, y))
+	ourMessage =ms
+	frame = Frame(main,height=h,width=w)
+	frame.pack()
+	messageVar = Message(frame, text = ourMessage,width=w) 
+	messageVar.config(bg='lightgreen') 
+	messageVar.pack( ) 
+	submit = Button(main, text="Copy Hash", fg="Black", bg="blue", command=paste)
+	submit.pack()
+	quitButton(main)
+	main.mainloop( ) 
+
+	
 def sconvert(s): 
-  
-    # initialization of string to "" 
     new = "" 
-  
-    # traverse in the string  
     for x in s: 
 		if x!=s[-1]:
 			new += (str(x)+ ", ")   
 		else:
 			new+=(str(x))
-    # return string  
     return new 
 	
 def convert(s): 
@@ -254,7 +281,7 @@ def sendv(votername,voterpass):
 	f.close()
 	print "block added"
 	print block
-	msg("block added: \n"+sconvert(block),400,100)
+	amsg("block added: \n"+sconvert(block),has,400,100)
 	print "block list"
 	print blocks
 	s.close()
@@ -322,7 +349,7 @@ def intcheck():
 re = tk.Tk() 
 re.title('voting system')
 re.configure(background='light green')
-re.geometry("700x400")
+re.geometry("900x400")
 
 def start():
 	heading = Label(re, text="ENTER CLIENT NO", bg="light green")
@@ -353,13 +380,13 @@ def clear():
     for l in list:
         l.destroy()
 def top():
-	button = tk.Button(re, text=' add a voter', width=25, command=avoter)
+	button = tk.Button(re, text=' add a voter', width=30, command=avoter)
 	button.grid(row=0,column=0)
-	butt = tk.Button(re,text='add a vote' , width=25,command=avote)
+	butt = tk.Button(re,text='add a vote' , width=30,command=avote)
 	butt.grid(row=0,column=1)
-	but = tk.Button(re,text='count vote of candidate' , width=25,command=countvote)
+	but = tk.Button(re,text='count vote of candidate' , width=30,command=countvote)
 	but.grid(row=0,column=2)
-	butt1 = tk.Button(re,text='integrity check' , width=25,command=icheck)
+	butt1 = tk.Button(re,text='integrity check' , width=30,command=icheck)
 	butt1.grid(row=0,column=3)
 def home():
 	global file
