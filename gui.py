@@ -1,5 +1,6 @@
 import Tkinter as tk
 from Tkinter import *
+import tkMessageBox
 import socket			
 import datetime 
 import hashlib
@@ -115,7 +116,7 @@ class quitButton(Button):
         self['text'] = 'OK'
         self['command'] = parent.destroy
         self.pack(side=BOTTOM)
-def msg(ms,w=80,h=65):
+def msg(ms,w=200,h=100):
 	sync()
 	main = Tk() 
 	def cl(event):
@@ -134,10 +135,33 @@ def msg(ms,w=80,h=65):
 	frame = Frame(main,height=h,width=w)
 	frame.pack()
 	messageVar = Message(frame, text = ourMessage,width=w) 
-	messageVar.config(bg='lightgreen') 
+	messageVar.config(bg='light blue') 
 	messageVar.pack( ) 
 	quitButton(main)
 	main.mainloop( ) 
+def err(ms,w=80,h=120):
+	main = Tk() 
+	def cl(event):
+		main.destroy()
+	main.lift()
+	main.attributes("-topmost", True)
+	main.bind('<Return>',cl)
+	ws = main.winfo_screenwidth() 
+	hs = main.winfo_screenheight()
+	x = (ws/2) - (w/2)
+	y = (hs/2) - (h/2)
+	main.geometry('%dx%d+%d+%d' % (w, h, x, y))
+	def close_window (): 
+		root.destroy()
+	ourMessage =ms
+	frame = Frame(main,height=h,width=w)
+	frame.pack()
+	messageVar = Message(frame, text = ourMessage,width=w) 
+	messageVar.config(bg='light blue') 
+	messageVar.pack( ) 
+	quitButton(main)
+	main.mainloop( ) 
+	
 def amsg(ms,has,w=80,h=120):
 	def close_window (): 
 		main.destroy()
@@ -164,9 +188,9 @@ def amsg(ms,has,w=80,h=120):
 	frame = Frame(main,height=h,width=w)
 	frame.pack()
 	messageVar = Message(frame, text = ourMessage,width=w) 
-	messageVar.config(bg='lightgreen') 
+	messageVar.config(bg='lightblue') 
 	messageVar.pack( ) 
-	submit = Button(main, text="Copy Hash", fg="Black", bg="blue", command=paste)
+	submit = Button(main, text="Copy Hash", padx=10, pady=10, command=paste)
 	submit.pack()
 	quitButton(main)
 	main.mainloop( ) 
@@ -247,7 +271,7 @@ def sendvote(voterhash,voterpass,vote):
 	s.close()
 	
 	
-def sendv(votername,voterpass):
+def sendv(votername,voterpass,dob):
 	choice='2'
 	global no
 	global file
@@ -266,24 +290,33 @@ def sendv(votername,voterpass):
 	count=s.recv(1024)
 	print "previous hash",prehash
 	print "count " , count
-	block=[count,votername,voterpass,prehash,ti]
-	has= hashlib.sha224(convert(block)).hexdigest()
-	block.append(has)
-	blocks.append(block)
-	s.send(has)
-	f = open(file, "a")	
-	for li in block:
-		if li==block[-1]:
-			f.write(li)
-		else:
-			f.write(li+",")
-	f.write("\n")
-	f.close()
-	print "block added"
-	print block
-	amsg("block added: \n"+sconvert(block),has,400,100)
-	print "block list"
-	print blocks
+
+	s.send(votername)
+	s.recv(1024)
+	s.send(dob)
+	x=s.recv(1024)
+	if x=='false' :
+		print "voter exists"
+		msg("voter exists")
+	else:
+		block=[count,votername,voterpass,prehash,ti,dob]
+		has= hashlib.sha224(convert(block)).hexdigest()
+		block.append(has)
+		blocks.append(block)
+		s.send(has)
+		f = open(file, "a")	
+		for li in block:
+			if li==block[-1]:
+				f.write(li)
+			else:
+				f.write(li+",")
+		f.write("\n")
+		f.close()
+		print "block added"
+		print block
+		amsg("block added: \n"+sconvert(block),has,400,100)
+		print "block list"
+		print blocks
 	s.close()
 	
 def cvote(candidate):
@@ -301,10 +334,10 @@ def cvote(candidate):
 	s.recv(1024)
 	s.send(candidate)
 	co=s.recv(1024)
-	print "no of votes for that candidate",co
-	ms="no of votes for this candidate: "+co
-	heading = Label(re, text=ms, bg="light green")
-	heading.grid(row=3, column=1)
+	print "Number of votes for that candidate: ",co
+	ms="Number of votes for this candidate: "+co
+	heading = Label(re, text=ms, bg="light blue", font=('TIMES NEW ROMAN',15))
+	heading.grid(row=8, column=1)
 	msg(ms)
 	s.close()
 	
@@ -328,40 +361,66 @@ def intcheck():
 	count=s.recv(1024)
 	s.send("recived")
 	vcount=s.recv(1024)
-	ms="voter chain no of lists"+count
-	head=Label(re,text=ms, bg="light green")
-	head.grid(row=3,column=1)
-	ms="vote chain no of lists"+vcount
-	head=Label(re,text=ms, bg="light green")
-	head.grid(row=4,column=1)
-	ms="no of voters in this client"+str(len(blocks))
+	ms="Voter chain no. of lists: "+count
 	head=Label(re,text=ms, bg="light green")
 	head.grid(row=5,column=1)
-	ms="no of votes in this client"+str(len(voteblocks))
+	ms="Vote chain no. of lists: "+vcount
 	head=Label(re,text=ms, bg="light green")
 	head.grid(row=6,column=1)
+	ms="No. of Voters in this client: "+str(len(blocks))
+	head=Label(re,text=ms, bg="light green")
+	head.grid(row=7,column=1)
+	ms="No. of Votes in this client: "+str(len(voteblocks))
+	head=Label(re,text=ms, bg="light green")
+	head.grid(row=8,column=1)
 	s.close()
 	return x
-
-	
-
   
 re = tk.Tk() 
-re.title('voting system')
-re.configure(background='light green')
-re.geometry("900x400")
-
+re.title('Voting system')
+re.configure(background='light blue')
+re.geometry("700x600")
+def dialog():
+	w=200
+	h=100
+	check=0
+	main = Tk() 
+	main.lift()
+	main.attributes("-topmost", True)
+	ws = main.winfo_screenwidth() 
+	hs = main.winfo_screenheight()
+	x = (ws/2) - (w/2)
+	y = (hs/2) - (h/2)
+	main.geometry('%dx%d+%d+%d' % (w, h, x, y))
+	def close_window (): 
+		root.destroy()
+	ourMessage ="are yu sure you want to exit?"
+	frame = Frame(main,height=h,width=w)
+	frame.pack()
+	messageVar = Message(frame, text = ourMessage,width=w) 
+	messageVar.config(bg='light blue') 
+	messageVar.pack( )
+	def yes():
+		main.destroy()
+		re.destroy()
+	def no():
+		main.destroy()
+	ye=Button(main,text="yes",command=yes)
+	ye.pack()
+	noo=Button(main,text="no",command=no)
+	noo.pack()
+	main.mainloop( ) 
 def start():
-	heading = Label(re, text="ENTER CLIENT NO", bg="light green")
-	name = Label(re, text="Client no", bg="light green")
-	i = Label(re, text="IP OF SERVER", bg="light green")
-	heading.grid(row=1, column=1)
+	heading = Label(re, text="ENTER CLIENT DETAILS", bg="light blue", pady="10", font = ('TIMES NEW ROMAN',30))
+	name = Label(re, text="Client Number",bg= 'light blue',font = ('TIMES NEW ROMAN',15))
+	i = Label(re, text="IP OF SERVER",bg= 'light blue', font = ('TIMES NEW ROMAN',15))
+	heading.grid(row=1, column=2)
 	name.grid(row=2, column=0)
 	i.grid(row=3, column=0)
 	name_field = Entry(re)
 	i_field=Entry(re)
-	name_field.grid(row=2, column=1, ipadx="50")
-	i_field.grid(row=3,column=1,ipadx="50")
+	name_field.grid(row=2, column=2, ipadx="60")
+	i_field.grid(row=3,column=2,ipadx="60")
 	def calc():
 		global no
 		global file
@@ -369,25 +428,37 @@ def start():
 		global ip
 		no=name_field.get()
 		ip=str(i_field.get())
-		print "ip is",ip
-		file= no+".txt"
-		vfile=no+"vote.txt"
-		home()
-	submit = Button(re, text="Submit", fg="Black", bg="Red", command=calc)
-	submit.grid(row=9, column=1)
+		if len(no)==0 and len(ip)==0:
+			err("enter all fields")
+		else:
+			print "ip is",ip
+			file= no+".txt"
+			vfile=no+"vote.txt"
+			home()
+	submit = Button(re, text="Submit", font=(10), command=calc)
+	q= tk.Button(re,text="Quit", padx=8, font=(10), command= dialog)
+	submit.grid(row=9, column=2,pady=10)
+	q.grid(row=10,column=2)
+
 def clear():
     list = re.grid_slaves()
     for l in list:
         l.destroy()
 def top():
-	button = tk.Button(re, text=' add a voter', width=30, command=avoter)
-	button.grid(row=0,column=0)
-	butt = tk.Button(re,text='add a vote' , width=30,command=avote)
-	butt.grid(row=0,column=1)
-	but = tk.Button(re,text='count vote of candidate' , width=30,command=countvote)
-	but.grid(row=0,column=2)
-	butt1 = tk.Button(re,text='integrity check' , width=30,command=icheck)
-	butt1.grid(row=0,column=3)
+	heading = Label(re, text="VOTER ACTIONS", bg="light blue", pady="10", font = ('TIMES NEW ROMAN',30))
+	heading.grid(row=0, column=1)
+	button = tk.Button(re, text='Add a voter', width=30, padx=10,pady=10, command=avoter)
+	button.grid(row=1,column=0,padx=10,pady=10)
+	butt = tk.Button(re,text='Add a vote' , width=30, padx=10,pady=10, command=avote)
+	butt.grid(row=1,column=1,padx=10,pady=10)
+	but = tk.Button(re,text='count vote of candidate' , width=30, padx=10,pady=10, command=countvote)
+	but.grid(row=2,column=0,padx=10,pady=10)
+	butt1 = tk.Button(re,text='integrity check' , width=30, padx=10,pady=10, command=icheck)
+	butt1.grid(row=2,column=1,padx=10,pady=10)
+	butt1 = tk.Button(re,text='Quit' , width=10, padx=10,pady=10, command=dialog)
+	butt1.grid(row=3,column=0,padx=10,pady=10)
+	
+    
 def home():
 	global file
 	global vfile
@@ -397,106 +468,120 @@ def home():
 	print str(vfile)
 	clear()
 	top()
-	ms="no of voters in this client"+str(len(blocks))
-	head=Label(re,text=ms, bg="light green")
+	ms="Number of Voters in this Client: "+str(len(blocks))
+	head=Label(re,text=ms, bg="light blue", font =('TIMES NEW ROMAN',15))
 	head.grid(row=5,column=1)
-	ms="no of votes in this client"+str(len(voteblocks))
-	head=Label(re,text=ms, bg="light green")
+	ms="Number of Votes in this Client: "+str(len(voteblocks))
+	head=Label(re,text=ms, bg="light blue", font =('TIMES NEW ROMAN',15))
 	head.grid(row=6,column=1)
+
 	
 def avoter():
 	clear()
 	top()
-	heading = Label(re, text="ADD A VOTER", bg="light green")
-	name = Label(re, text="Name", bg="light green")
-	pas = Label(re, text="voter pass", bg="light green")
-	
-	heading.grid(row=1, column=1)
-	name.grid(row=2, column=0)
-	pas.grid(row=3, column=0)
+	heading = Label(re, text="ADD A VOTER", bg="light blue", pady="10", font = ('TIMES NEW ROMAN',30))
+	name = Label(re, text="Voter Name", bg="light blue")
+	pas = Label(re, text="Voter Password", bg="light blue")
+	dob=Label(re,text="dob",bg="light blue")
+	heading.grid(row=5, column=1)
+	name.grid(row=6, column=0)
+	pas.grid(row=8, column=0)
+	dob.grid(row=7,column=0)
 	
 	name_field = Entry(re)
+	dob_field=Entry(re)
 	pass_field = Entry(re)
-	
-	name_field.grid(row=2, column=1, ipadx="50")
-	pass_field.grid(row=3, column=1, ipadx="50") 
-
+	name_field.grid(row=6, column=1, ipadx="50")
+	pass_field.grid(row=8, column=1, ipadx="50") 
+	dob_field.grid(row=7,column=1,ipadx="50")
 	def calc():
 		et=name_field.get()
 		xt=pass_field.get()
-		print et
-		print xt
-		sendv(et,xt)
-		avoter()
-		home()
-	submit = Button(re, text="Submit", fg="Black", bg="Red", command=calc)
+		yt=dob_field.get()
+		if len(et) ==0 and len(xt)==0 and len(yt)==0:
+			msg("enter all input")
+		else:
+			print et
+			print xt
+			sendv(et,xt,yt)
+			avoter()
+			home()
+	submit = Button(re, text="Submit", padx=10, pady=10,command=calc)
 	submit.grid(row=9, column=1)
-	button = tk.Button(re, text='home', width=25, command=home)
-	button.grid(row=10,column=1)
+	button = tk.Button(re, text='home', width=25, padx=10, pady=10, command=home)
+	button.grid(row=3,column=1, pady=10, padx=10)
+	
 def avote():
 	clear()
 	top()
 
-	heading = Label(re, text="ADD A VOTE", bg="light green")
-	name = Label(re, text="Voter Hash", bg="light green")
-	pas = Label(re, text="voter pass", bg="light green")
-	vote = Label(re, text="candidate id bwteen (0/1)", bg="light green")
-	heading.grid(row=1, column=1)
-	name.grid(row=2, column=0)
-	pas.grid(row=3, column=0)
-	vote.grid(row=4,column=0)
+	heading = Label(re, text="ADD A VOTE", bg="light blue", pady="10", font = ('TIMES NEW ROMAN',30))
+	name = Label(re, text="Voter Hash", bg="light blue")
+	pas = Label(re, text="Voter password", bg="light blue")
+	vote = Label(re, text="Candidate id Between (1/10)", bg="light blue")
+	heading.grid(row=5, column=1)
+	name.grid(row=6, column=0)
+	pas.grid(row=7, column=0)
+	vote.grid(row=8,column=0)
 	
 	name_field = Entry(re)
 	pass_field = Entry(re)
 	vote_field = Entry(re)
 	
-	name_field.grid(row=2, column=1, ipadx="50")
-	pass_field.grid(row=3, column=1, ipadx="50") 
-	vote_field.grid(row=4, column=1, ipadx="50") 
+	name_field.grid(row=6, column=1, ipadx="50")
+	pass_field.grid(row=7, column=1, ipadx="50") 
+	vote_field.grid(row=8, column=1, ipadx="50") 
 	def calc():
 		et=name_field.get()
 		xt=pass_field.get()
 		vt=vote_field.get()
-		print et
-		print xt
-		print vt
-		sendvote(et,xt,vt)
-		home()
-	submit = Button(re, text="Submit", fg="Black", bg="Red", command=calc)
+		if len(et) ==0 and len(xt)==0 and len(vt)==0:
+			msg("enter all input")
+		else:
+			print et
+			print xt
+			print vt
+			sendvote(et,xt,vt)
+			home()
+	submit = Button(re, text="Submit", padx=10, pady=10,command=calc)
 	submit.grid(row=9, column=1)
-	button = tk.Button(re, text='home', width=25, command=home)
-	button.grid(row=10,column=1)
+	button = tk.Button(re, text='Home',padx=10, pady=10, width=25, command=home)
+	button.grid(row=3,column=1,padx=10,pady=10)
+	
 def countvote():
 	clear()
 	top()
-	heading = Label(re, text="COUNT VOTE", bg="light green")
-	name = Label(re, text="Candidate id", bg="light green")
-	heading.grid(row=1, column=1)
-	name.grid(row=2, column=0)
+	heading = Label(re, text="COUNT VOTE",  bg="light blue", pady="10", font = ('TIMES NEW ROMAN',30))
+	name = Label(re, text="Candidate id", bg="light blue")
+	heading.grid(row=5, column=1)
+	name.grid(row=6, column=0)
 
 	name_field = Entry(re)
 	
-	name_field.grid(row=2, column=1, ipadx="50")
+	name_field.grid(row=6, column=1, ipadx="50")
  
 	def calc():
 		et=name_field.get()
 		print et
-		cvote(et)
-		home()
-	submit = Button(re, text="Submit", fg="Black", bg="Red", command=calc)
-	submit.grid(row=9, column=1)
+		if len(et)==0:
+			msg("Enter input")
+		else:
+			cvote(et)
+			home()
+	submit = Button(re, text="Submit",padx=10, pady=10, command=calc)
+	submit.grid(row=7, column=1)
 	button = tk.Button(re, text='home', width=25, command=home)
-	button.grid(row=10,column=1)
+	button.grid(row=3,column=1)
 def icheck():
 	clear()
 	top()
 	message = intcheck()
 	heading = Label(re, text="INTEGRITY CHECK", bg="light green")
-	heading.grid(row=1, column=1)
-	head=Label(re,text=message, bg="light green")
-	head.grid(row=2,column=1)
-	print " intergrity check"
-	button = tk.Button(re, text='home', width=25, command=home)
-	button.grid(row=10,column=1)
+	heading.grid(row=5, column=1)
+	head=Label(re,text=message, bg="light Blue", font=('TIMES NEW ROMAN', 15))
+	head.grid(row=5,column=1)
+	print "Intergrity check"
+	button = tk.Button(re, text='home', padx=10, pady=10, width=25, command=home)
+	button.grid(row=3,column=1)
 start()
 re.mainloop() 

@@ -79,7 +79,11 @@ def checkvote(voterhash):
 		if x[1]==voterhash:
 			return 1
 	return 0
-	
+def dobmatch(votername,dob):
+	for x in blocks:
+		if x[1]==votername and x[-2]==dob:
+			return 1
+	return 0
 def fi(voterhash):
 	i=0
 	found=-1
@@ -98,7 +102,7 @@ t=str(datetime.datetime.now())
 voteblock=['0','vote hash',"votepass",'0','ex45pre34hash',t]
 vhas= hashlib.sha224(convert(voteblock)).hexdigest()
 voteblock.append(vhas)
-block=['0','votername','voterpasss','ex45pre34hash','t']
+block=['0','votername','voterpasss','ex45pre34hash','dob',t]
 has= hashlib.sha224(convert(block)).hexdigest()
 block.append(has)
 blocks.append(block)
@@ -129,12 +133,20 @@ while True:
 		count=len(blocks)+1
 		c.send(str(count))
 		print "sent prehash and count"
-		data=c.recv(1024)
-		print "voter data added hash is",data,"by addres",addr
-		prehash=data
-		arr=[count,data,addr,clientno]
-		hashes.append(arr)
-		print "hash list",hashes
+		votername=c.recv(1024)
+		c.send("recieved")
+		dob=c.recv(1024)
+		res=dobmatch(votername,dob)
+		if res==1:
+			c.send("false")
+		else:
+			c.send("true")
+			data=c.recv(1024)
+			print "voter data added hash is",data,"by addres",addr
+			prehash=data
+			arr=[count,data,addr,clientno]
+			hashes.append(arr)
+			print "hash list",hashes
 	if choice=='4':
 		c.send("choice recieved")
 		n=c.recv(1024)
