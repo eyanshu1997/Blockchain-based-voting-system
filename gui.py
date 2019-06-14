@@ -362,17 +362,17 @@ def intcheck():
 	s.send("recived")
 	vcount=s.recv(1024)
 	ms="Voter chain no. of lists: "+count
-	head=Label(re,text=ms, bg="light green")
-	head.grid(row=5,column=1)
-	ms="Vote chain no. of lists: "+vcount
-	head=Label(re,text=ms, bg="light green")
-	head.grid(row=6,column=1)
-	ms="No. of Voters in this client: "+str(len(blocks))
-	head=Label(re,text=ms, bg="light green")
+	head=Label(re,text=ms, bg="light blue")
 	head.grid(row=7,column=1)
-	ms="No. of Votes in this client: "+str(len(voteblocks))
-	head=Label(re,text=ms, bg="light green")
+	ms="Vote chain no. of lists: "+vcount
+	head=Label(re,text=ms, bg="light blue")
 	head.grid(row=8,column=1)
+	ms="No. of Voters in this client: "+str(len(blocks))
+	head=Label(re,text=ms, bg="light blue")
+	head.grid(row=9,column=1)
+	ms="No. of Votes in this client: "+str(len(voteblocks))
+	head=Label(re,text=ms, bg="light blue")
+	head.grid(row=10,column=1)
 	s.close()
 	return x
   
@@ -576,8 +576,8 @@ def icheck():
 	clear()
 	top()
 	message = intcheck()
-	heading = Label(re, text="INTEGRITY CHECK", bg="light green")
-	heading.grid(row=5, column=1)
+	heading = Label(re, text="INTEGRITY CHECK", font=('TIMES NEW ROMAN', 15), bg="light blue")
+	heading.grid(row=6, column=1)
 	head=Label(re,text=message, bg="light Blue", font=('TIMES NEW ROMAN', 15))
 	head.grid(row=5,column=1)
 	print "Intergrity check"
